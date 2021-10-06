@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 services:
   # More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
@@ -12,14 +12,16 @@ services:
       - "67:67/udp"
       - "81:80/tcp"
     environment:
-      TZ: "Europe/Amsterdam"
-      # WEBPASSWORD: 'set a secure password here or it will be random'
+      TZ: Europe/Amsterdam
+      # Enter password
+      WEBPASSWORD: PASSWORD
+      WEBTHEME: default-dark
     # Volumes store your data between container upgrades
     volumes:
       - "./etc-pihole/:/etc/pihole/"
       - "./etc-dnsmasq.d/:/etc/dnsmasq.d/"
     # Recommended but not required (DHCP needs NET_ADMIN)
-    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    # https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
@@ -27,8 +29,6 @@ services:
   # More info at https://blog.ssdnodes.com/blog/installing-nextcloud-docker/
   proxy:
     image: jwilder/nginx-proxy:alpine
-    labels:
-      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
     container_name: nextcloud-proxy
     networks:
       - nextcloud_network
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mariadb
+    image: mariadb:latest
     container_name: nextcloud-mariadb
     networks:
       - nextcloud_network
@@ -68,10 +68,11 @@ services:
       - db:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - MYSQL_ROOT_PASSWORD=toor
-      - MYSQL_PASSWORD=mysql
-      - MYSQL_DATABASE=nextcloud
-      - MYSQL_USER=nextcloud
+      # Enter username and passwords
+      MYSQL_ROOT_PASSWORD: PASSWORD
+      MYSQL_USER: USERNAME
+      MYSQL_PASSWORD: PASSWORD_USER
+      MYSQL_DATABASE: nextcloud
     restart: unless-stopped
 
   app:
@@ -91,9 +92,10 @@ services:
       - ./app/themes:/var/www/html/themes
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - VIRTUAL_HOST=nextcloud.YOUR-DOMAIN
-      - LETSENCRYPT_HOST=nextcloud.YOUR-DOMAIN
-      - LETSENCRYPT_EMAIL=YOUR-EMAIL
+      # Enter domain details
+      VIRTUAL_HOST: nextcloud.YOUR-DOMAIN
+      LETSENCRYPT_HOST: nextcloud.YOUR-DOMAIN
+      LETSENCRYPT_EMAIL: YOUR-EMAIL
     restart: unless-stopped
 
 volumes:
