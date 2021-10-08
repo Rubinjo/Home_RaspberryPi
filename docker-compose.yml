@@ -15,7 +15,7 @@ services:
       TZ: Europe/Amsterdam
       # Enter password
       WEBPASSWORD: PASSWORD
-      WEBTHEME: default-dark
+      WEBTHEME: default-darker
     # Volumes store your data between container upgrades
     volumes:
       - "./etc-pihole/:/etc/pihole/"
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mariadb:latest
+    image: linuxserver/mariadb:alpine
     container_name: nextcloud-mariadb
     networks:
       - nextcloud_network
@@ -68,6 +68,7 @@ services:
       - db:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
     environment:
+      TZ: Europe/Amsterdam
       # Enter username and passwords
       MYSQL_ROOT_PASSWORD: PASSWORD
       MYSQL_USER: USERNAME
