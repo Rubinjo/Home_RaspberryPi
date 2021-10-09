@@ -68,6 +68,8 @@ services:
       - db:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
     environment:
+      PUID: 1000
+      PGID: 1000
       TZ: Europe/Amsterdam
       # Enter username and passwords
       MYSQL_ROOT_PASSWORD: PASSWORD
