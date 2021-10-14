@@ -27,8 +27,10 @@ services:
     restart: unless-stopped
 
   # More info at https://blog.ssdnodes.com/blog/installing-nextcloud-docker/
-  proxy:
+  nginx-proxy:
     image: jwilder/nginx-proxy:alpine
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
     container_name: nextcloud-proxy
     networks:
       - nextcloud_network
@@ -36,25 +38,24 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./proxy/conf:/etc/nginx/conf.d
-      - ./proxy/vhost:/etc/nginx/vhost.d
-      - ./proxy/html:/usr/share/nginx/html
-      - ./proxy/certs:/etc/nginx/certs:ro
+      - /data/nextcloud/nginx/vhost.d:/etc/nginx/vhost.d:rw
+      - /data/nextcloud/nginx/html:/usr/share/nginx/html:rw
+      - /data/nextcloud/nginx/certs:/etc/nginx/certs:ro
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
     restart: unless-stopped
 
   letsencrypt:
-    image: nginxproxy/acme-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: nextcloud-letsencrypt
     depends_on:
-      - proxy
+      - nginx-proxy
     networks:
       - nextcloud_network
     volumes:
-      - ./proxy/certs:/etc/nginx/certs:rw
-      - ./proxy/vhost.d:/etc/nginx/vhost.d:rw
-      - ./proxy/html:/usr/share/nginx/html:rw
+      - /data/nextcloud/nginx/vhost.d:/etc/nginx/vhost.d:rw
+      - /data/nextcloud/nginx/html:/usr/share/nginx/html:rw
+      - /data/nextcloud/nginx/certs:/etc/nginx/certs:rw
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
@@ -65,7 +66,7 @@ services:
     networks:
       - nextcloud_network
     volumes:
-      - db:/var/lib/mysql
+      - /data/nextcloud/mysql:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
     environment:
       PUID: 1000
@@ -73,7 +74,7 @@ services:
       TZ: Europe/Amsterdam
       # Enter username and passwords
       MYSQL_ROOT_PASSWORD: PASSWORD
-      MYSQL_USER: USERNAME
+      MYSQL_USER: nextcloud
       MYSQL_PASSWORD: PASSWORD_USER
       MYSQL_DATABASE: nextcloud
     restart: unless-stopped
@@ -85,14 +86,14 @@ services:
       - nextcloud_network
     depends_on:
       - letsencrypt
-      - proxy
+      - nginx-proxy
       - db
     volumes:
-      - nextcloud:/var/www/html
-      - ./app/config:/var/www/html/config
-      - ./app/custom_apps:/var/www/html/custom_apps
-      - ./app/data:/var/www/html/data
-      - ./app/themes:/var/www/html/themes
+      - /data/nextcloud/app/html:/var/www/html
+      - /data/nextcloud/app/config:/var/www/html/config
+      - /data/nextcloud/app/custom_apps:/var/www/html/custom_apps
+      - /data/nextcloud/app/data:/var/www/html/data
+      - /data/nextcloud/app/themes:/var/www/html/themes
       - /etc/localtime:/etc/localtime:ro
     environment:
       # Enter domain details
@@ -100,10 +101,6 @@ services:
       LETSENCRYPT_HOST: nextcloud.YOUR-DOMAIN
       LETSENCRYPT_EMAIL: YOUR-EMAIL
     restart: unless-stopped
-
-volumes:
-  nextcloud:
-  db:
 
 networks:
   nextcloud_network:
