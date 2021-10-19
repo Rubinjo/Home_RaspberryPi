@@ -88,7 +88,7 @@ docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /va
 Navigate to `http://<pi-ip-address>:9000`. Setup the admin username and password. In the next page, select `Docker` as the container environment to manage. You will now be brought to the portainer homepage.
 
 ## Setup Nginx Proxy Manager
-We are using [Nginx Proxy Manager](https://nginxproxymanager.com/) to make it easy to setup an reverse proxy and create SSL certificates.
+We are using [Nginx Proxy Manager](https://nginxproxymanager.com/) to make it easy to setup a reverse proxy and create SSL certificates.
 
 ```
 docker network create proxy
@@ -133,6 +133,57 @@ docker-compose up -d
 Navigate to `http://<pi-ip-address>:81` and login (email: `admin@example.com` and password: `changeme`).  
 You will immediately be prompted to change these.
 
+## Add storage drives
+To get extra storage with your nextcloud installation you can add HDD's and/or SSD's to the pi. Use a raid (specifically raid 1) setup to build in redundancy.
+
+### Partition drives
+1. Insert the drive into the raspberry pi through an adapter.
+2. (Optional) check if drives are correctly plugged in.
+
+```
+cd /dev
+ll sd*
+```
+
+3. Select the storage disk you want to create partitions on.
+
+```
+sudo fdisk /dev/sda
+```
+4. Run through the partition creator (`n` = create a new partition and `d` = delete a partition) (`+` followed by a number with `G` = Gigabyte or `M`=Megabyte behind it to determine partition size)
+5. Write the created partition to the drive with `w`.
+6. Repeat for other drives.
+7. Format the partition.
+
+```
+sudo mkfs -t ext4 /dev/sda1
+```
+
+### Create Raid partition
+1. Create raid 1 volume.
+
+```
+sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdb1
+```
+
+2. Format the partition.
+
+```
+sudo mkfs.ext4 -v -m .1 -b 4096 -E stride=32,stipe-width=64 /dev/md0
+```
+
+3. Mount drive.
+
+```
+sudo mount /dev/md0 /mnt/raid1
+```
+
+4. Add the following text to the `fstab` file in the `/etc` folder so that the drive is mounted on bootup.
+
+```
+/dev/md0  /mnt/raid1  ext4  defaults  0 0
+```
+
 ## Setup Nextcloud
 
 ```
@@ -147,10 +198,6 @@ Create a `docker-compose.yml` file in the `nextcloud` directory with following c
 ```
 version: '3'
 
-volumes:
-  nextcloud-data:
-  nextcloud-db:
-
 networks:
   frontend:
     external:
@@ -163,7 +210,7 @@ services:
     image: nextcloud
     restart: always
     volumes:
-      - nextcloud-data:/var/www/html
+      - /mnt/raid1/nextcloud:/var/www/html
     environment:
       - MYSQL_PASSWORD=PASSWORD
       - MYSQL_DATABASE=nextcloud
@@ -180,7 +227,7 @@ services:
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
     volumes:
-      - nextcloud-db:/var/lib/mysql
+      - /mnt/raid1/db:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=PASSWORD
       - MYSQL_PASSWORD=PASSWORD
@@ -215,61 +262,21 @@ To remove the php-imagick warning you can install libmagickcore-dev:
 To set the default phone region and to allow access from nextcloud sync apps, use nano to add the following details to the `config.php` file found in `/var/www/html/config`.
 
 ```
-'default_phone_region' => 'COUNTRY-CODE'
+'default_phone_region' => 'COUNTRY-CODE',
 'overwrite.cli.url' => 'https://<your-domain>',
 'overwritehost' => '<your-domain>',
 'overwriteprotocol' => 'https',
 ```
-
-## Add storage drives
-To get extra storage with you nextcloud installation you can add HDD's and/or SSD's to the pi. Use a raid (specifically raid 1) setup to build in redundancy.
-
-### Partition drives
-1. Insert the drive into the raspberry pi through an adapter.
-2. (Optional) check if drives are correctly plugged in.
+For caldav and carddav, add the following to the Custom Nginx Configuration in the `advanced` tab of the `nextcloud proxy` set up in the `Nginx Proxy Manager`.
 
 ```
-cd /dev
-ll sd*
-```
+location /.well-known/carddav {
+  return 301 https://<your-domain>/remote.php/dav;
+}
 
-3. Select the storage disk you want to create partitions on.
-
-```
-sudo fdisk /dev/sda
-```
-4. Run through the partition creator (`n` = create a new partition and `d` = delete a partition) (`+` followed by a number with `G` = Gigabyte or `M`=Megabyte to determine partition size)
-5. Write the created partition to the drive with `w`.
-6. Repeat for other drives.
-7. Format the partition.
-
-```
-sudo mkfs -t ext4 /dev/sda1
-```
-
-### Create Raid partition
-1. Create raid 1 volume.
-
-```
-sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdb1
-```
-
-2. Format the partition.
-
-```
-sudo mkfs.ext4 -v -m .1 -b 4096 -E stride=32,stipe-width=64 /dev/md0
-```
-
-3. Mount drive.
-
-```
-sudo mount /dev/md0 /mnt
-```
-
-4. Add the following text to the `fstab` file in the `/etc` folder so that the drive is mounted on bootup.
-
-```
-/dev/md0  /mnt  ext4  defaults  0 0
+location /.well-known/caldav {
+  return 301 https://<your-domain>/remote.php/dav;
+}
 ```
 
 ## Setup Pi-Hole
