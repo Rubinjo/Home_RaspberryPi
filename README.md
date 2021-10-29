@@ -1,15 +1,15 @@
 # Home_RaspberryPi
 
 ## Prerequisites
+
 - Buy a domain name.
 
-| Domain Name                               | Sub Domain                                                      | Provider                    |
-| ------------------------------------------| --------------------------------------------------------------- | --------------------------- |
-| [lucashost.nl](https://www.lucashost.nl/) | [nextcloud.lucashost.nl](https://www.nextcloud.lucashost.nl/) | [OVH](https://www.ovh.nl/)  |
+| Domain Name                               | Sub Domain                                                    | Provider                   |
+| ----------------------------------------- | ------------------------------------------------------------- | -------------------------- |
+| [lucashost.nl](https://www.lucashost.nl/) | [nextcloud.lucashost.nl](https://www.nextcloud.lucashost.nl/) | [OVH](https://www.ovh.nl/) |
 
 - Set up static IP.
-- Set up port forwarding for port `80` and `443`
-
+- Set up port forwarding for port `82` and `443`
 
 ## Install OS
 
@@ -78,6 +78,7 @@ sudo reboot
 ```
 
 ## Setup portainer
+
 [Portainer](https://www.portainer.io/) is a useful tool for setting up and managing docker containers.
 
 ```
@@ -88,6 +89,7 @@ docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /va
 Navigate to `http://<pi-ip-address>:9000`. Setup the admin username and password. In the next page, select `Docker` as the container environment to manage. You will now be brought to the portainer homepage.
 
 ## Setup Nginx Proxy Manager
+
 We are using [Nginx Proxy Manager](https://nginxproxymanager.com/) to make it easy to setup a reverse proxy and create SSL certificates.
 
 ```
@@ -111,7 +113,7 @@ services:
     image: "jc21/nginx-proxy-manager:latest"
     restart: always
     ports:
-      - "80:80"
+      - "82:80"
       - "443:443"
       - "81:81"
     environment:
@@ -134,9 +136,11 @@ Navigate to `http://<pi-ip-address>:81` and login (email: `admin@example.com` an
 You will immediately be prompted to change these.
 
 ## Add storage drives
+
 To get extra storage with your nextcloud installation you can add HDD's and/or SSD's to the pi. Use a raid (specifically raid 1) setup to build in redundancy.
 
 ### Partition drives
+
 1. Insert the drive into the raspberry pi through an adapter.
 2. (Optional) check if drives are correctly plugged in.
 
@@ -150,6 +154,7 @@ ll sd*
 ```
 sudo fdisk /dev/sda
 ```
+
 4. Run through the partition creator (`n` = create a new partition and `d` = delete a partition) (`+` followed by a number with `G` = Gigabyte or `M`=Megabyte behind it to determine partition size)
 5. Write the created partition to the drive with `w`.
 6. Repeat for other drives.
@@ -160,6 +165,7 @@ sudo mkfs -t ext4 /dev/sda1
 ```
 
 ### Create Raid partition
+
 1. Create raid 1 volume.
 
 ```
@@ -244,19 +250,24 @@ docker-compose up -d
 ```
 
 ## Set up the proxy and SSL certificates
+
 Navigate back to the Nginx Proxy Manager Web UI and set up a SSL certificate for your domain using web UI on the `SSL Certificates` tab. This will only be possible once the domain has **propagated**.
 
-From the `Hosts` tab, set up a new proxy host for your domain and point it to the hostname `nextcloud-app` on port `80`. Note as the docker compose was set up using the external network the containers can resolve themselves using their names. On the `SSL` tab, select the certificate created earlier and then select the `Force SSL`, `HTTP/2 Support` and `HSTS Enabled` options.
+From the `Hosts` tab, set up a new proxy host for your domain and point it to the hostname `nextcloud-app` on port `80` (external port is 82, but the internal one which is used is still 80). Note as the docker compose was set up using the external network the containers can resolve themselves using their names. On the `SSL` tab, select the certificate created earlier and then select the `Force SSL`, `HTTP/2 Support` and `HSTS Enabled` options.
 
 ## Configure Nextcloud
+
 You should now be able to navigate to your domain and the login screen should pop up! You should also now see a secure connection using a lets encrypt certificate. Create the admin user and untick the Install recommended apps, for performance reasons using the pi, install only what you need using the nextcloud web gui later. After a short while, and possibly a couple of page refreshes, you should be able to log in and upload/download files from the nextcloud web gui.
 
 ### Extra configurations steps
+
 Log into the console for the nextcloud container, if you installed portainer this can be done through the portainer web ui by navigating to the container and clicking the console icon. Otherwise use `docker exec -it nextcloud_nextcloud-app_1 /bin/bash`.
-- use `apt update && apt upgrade` to get the newest packages. 
+
+- use `apt update && apt upgrade` to get the newest packages.
 - use `apt install nano` to install nano.
 
 To remove the php-imagick warning you can install libmagickcore-dev:
+
 - use `apt install libmagickcore-dev`
 
 To set the default phone region and to allow access from nextcloud sync apps, use nano to add the following details to the `config.php` file found in `/var/www/html/config`.
@@ -267,6 +278,7 @@ To set the default phone region and to allow access from nextcloud sync apps, us
 'overwritehost' => '<your-domain>',
 'overwriteprotocol' => 'https',
 ```
+
 For caldav and carddav, add the following to the Custom Nginx Configuration in the `advanced` tab of the `nextcloud proxy` set up in the `Nginx Proxy Manager`.
 
 ```
@@ -280,6 +292,7 @@ location /.well-known/caldav {
 ```
 
 ## Setup Pi-Hole
+
 Pi-Hole is a network-wide ad blocker.
 
 ```
@@ -300,10 +313,10 @@ services:
     image: pihole/pihole:latest
     # ports already used
     ports:
-      - "54:53/tcp"
-      - "54:53/udp"
+      - "53:53/tcp"
+      - "53:53/udp"
       - "67:67/udp"
-      - "82:80/tcp"
+      - "80:80/tcp"
     environment:
       TZ: Europe/Amsterdam
       WEBPASSWORD: PASSWORD
@@ -325,4 +338,13 @@ Create the container.
 docker-compose up -d
 ```
 
-You should now be able to access the web gui on port `82` of the network and login with the `PASSWORD`. Add `<pi-ip-address>#82` to the DNS Server record in your router settings to enable network-wide adblocking.
+You should now be able to access the web gui on port `80` of the network and login with the `PASSWORD`. Add `<pi-ip-address>` to the DNS Server record in your router settings to enable network-wide adblocking.
+
+### Potential bug
+
+Port `53` may be occupied by the `systemd-resolve` service. Changing the pihole ports does not work. The easiest way to fix this bug is by disabling this service, this can be done with the following commands.
+
+```
+systemctl disable systemd-resolved.service
+systemctl stop systemd-resolved
+```

@@ -7,10 +7,10 @@ services:
     image: pihole/pihole:latest
     # ports already used
     ports:
-      - "54:53/tcp"
-      - "54:53/udp"
+      - "53:53/tcp"
+      - "53:53/udp"
       - "67:67/udp"
-      - "82:80/tcp"
+      - "80:80/tcp"
     environment:
       TZ: Europe/Amsterdam
       WEBPASSWORD: PASSWORD

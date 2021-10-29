@@ -1,9 +1,5 @@
 version: "3"
 
-volumes:
-  nextcloud-data:
-  nextcloud-db:
-
 networks:
   frontend:
     external:
@@ -15,7 +11,7 @@ services:
     image: nextcloud
     restart: always
     volumes:
-      - nextcloud-data:/var/www/html
+      - /mnt/raid1/nextcloud:/var/www/html
     environment:
       - MYSQL_PASSWORD=PASSWORD
       - MYSQL_DATABASE=nextcloud
@@ -32,7 +28,7 @@ services:
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
     volumes:
-      - nextcloud-db:/var/lib/mysql
+      - /mnt/raid1/db:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=PASSWORD
       - MYSQL_PASSWORD=PASSWORD
