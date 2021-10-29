@@ -342,9 +342,19 @@ You should now be able to access the web gui on port `80` of the network and log
 
 ### Potential bug
 
-Port `53` may be occupied by the `systemd-resolve` service. Changing the pihole ports does not work. The easiest way to fix this bug is by disabling this service, this can be done with the following commands.
+Port `53` may be occupied by the `systemd-resolve` service. Changing the pihole ports does not work. The easiest way to fix this bug is by changing the `systemd-resolve` service, this can be done by editing `/etc/systemd/resolved.conf` to the following (here 1.1.1.1 is the Cloudflare DNS).
 
 ```
-systemctl disable systemd-resolved.service
-systemctl stop systemd-resolved
+[Resolve]
+DNS=1.1.1.1
+#FallbackDNS=
+#Domains=
+#LLMNR=no
+#MulticastDNS=no
+#DNSSEC=no
+#DNSOverTLS=no
+#Cache=no
+DNSStubListener=no
+#ReadEtcHosts=yes
 ```
+Saving this file and rebooting the system should fix the bug.
