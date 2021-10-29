@@ -270,6 +270,10 @@ To remove the php-imagick warning you can install libmagickcore-dev:
 
 - use `apt install libmagickcore-dev`
 
+To remove svg warning you can install libmagickcore-6.q16-6-extra:
+
+- use `apt-get install libmagickcore-6.q16-6-extra`
+
 To set the default phone region and to allow access from nextcloud sync apps, use nano to add the following details to the `config.php` file found in `/var/www/html/config`.
 
 ```
