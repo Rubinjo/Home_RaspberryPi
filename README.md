@@ -254,7 +254,7 @@ From the `Hosts` tab, set up a new proxy host for your domain and point it to th
 
 You should now be able to navigate to your domain and the login screen should pop up! You should also now see a secure connection using a lets encrypt certificate. Create the admin user and untick the Install recommended apps, for performance reasons using the pi, install only what you need using the nextcloud web gui later. After a short while, and possibly a couple of page refreshes, you should be able to log in and upload/download files from the nextcloud web gui.
 
-### Extra configurations steps
+### Extra configuration steps
 
 Log into the console for the nextcloud container, if you installed portainer this can be done through the portainer web ui by navigating to the container and clicking the console icon. Otherwise use `docker exec -it nextcloud_nextcloud-app_1 /bin/bash`.
 
@@ -358,3 +358,35 @@ DNSStubListener=no
 ```
 
 Saving this file and rebooting the system should fix the bug.
+
+## Update container
+
+To update the software when a newer version is available you first need to update the docker image if this is possible. For this you need to remove the container. Saved data of the container will remain, however adjustments that where made inside the container need to be executed again (like the Nextcloud extra configuration steps). To check for the current images that are installed run:
+
+```
+docker images list
+```
+
+Pull the latest version of the docker image you want to update:
+
+```
+docker pull <image-name>
+```
+
+Stop the active container by running the following command:
+
+```
+docker stop <container-name>
+```
+
+Remove the container by running the following command:
+
+```
+docker rm <container-name>
+```
+
+Now reinitiate the container with the newer image by rerunning the docker-compose command (make sure you are located in the folder with the correct `docker-compose.yml`):
+
+```
+docker-compose up -d
+```
