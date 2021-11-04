@@ -1,5 +1,16 @@
 # Home_RaspberryPi
 
+A tutorial on how to setup [Pihole](https://github.com/pi-hole/pi-hole), [Portainer](https://github.com/portainer/portainer), [Nextcloud](https://github.com/nextcloud/docker) and [Nginx Proxy Manager](https://github.com/jc21/nginx-proxy-manager) on a Raspberry Pi. This setup was executed with a Raspberry Pi 4 Model B 4GB.
+
+<p align="center">
+  <a aria-label="Docker_shield" href="https://github.com/docker" target="_blank">
+    <img alt="Run on Docker" src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" target="_blank" />
+  </a>
+  <a aria-label="Raspberry_Pi_shield" href="https://www.raspberrypi.com/" target="_blank">
+    <img alt="Build on Raspberry Pi" src="https://img.shields.io/badge/Raspberry%20Pi-A22846?style=for-the-badge&logo=Raspberry%20Pi&logoColor=white" target="_blank"     />
+  </a>
+</p>
+
 ## Prerequisites
 
 - Buy a domain name.
