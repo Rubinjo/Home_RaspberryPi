@@ -3,13 +3,8 @@
 ## Prerequisites
 
 - Buy a domain name.
-
-| Domain Name                               | Sub Domain                                                    | Provider                   |
-| ----------------------------------------- | ------------------------------------------------------------- | -------------------------- |
-| [lucashost.nl](https://www.lucashost.nl/) | [nextcloud.lucashost.nl](https://www.nextcloud.lucashost.nl/) | [OVH](https://www.ovh.nl/) |
-
 - Set up static IP.
-- Set up port forwarding for port `82` and `443`
+- Set up port forwarding for port `82` and `443`.
 
 ## Install OS
 
@@ -361,4 +356,5 @@ DNS=1.1.1.1
 DNSStubListener=no
 #ReadEtcHosts=yes
 ```
+
 Saving this file and rebooting the system should fix the bug.
