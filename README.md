@@ -88,8 +88,27 @@ sudo reboot
 [Portainer](https://www.portainer.io/) is a useful tool for setting up and managing docker containers.
 
 ```
-docker volume create portainer_data
-docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+cd ~
+mkdir portainer
+cd portainer
+```
+
+Create a `docker-compose.yml` file in the `portainer` directory with following content.
+
+```
+version: "3"
+
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "portainer_data:/data"
+    restart: always
 ```
 
 Navigate to `http://<pi-ip-address>:9000`. Setup the admin username and password. In the next page, select `Docker` as the container environment to manage. You will now be brought to the portainer homepage.
