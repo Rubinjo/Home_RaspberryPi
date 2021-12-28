@@ -14,7 +14,7 @@ A tutorial on how to setup [Pihole](https://github.com/pi-hole/pi-hole), [Portai
 ## Prerequisites
 
 - Buy a domain name.
-- Set up static IP.
+- Set up a static IP address for your device.
 - Set up port forwarding for port `82` and `443`.
 
 ## Install OS
@@ -162,11 +162,17 @@ You will immediately be prompted to change these.
 
 ## Add storage drives
 
-To get extra storage with your nextcloud installation you can add HDD's and/or SSD's to the pi. Use a raid (specifically raid 1) setup to build in redundancy.
+To get extra storage with your nextcloud installation you can add HDD's and/or SSD's to the pi. These storage drives can also be used in a [raid setup](https://en.wikipedia.org/wiki/Standard_RAID_levels) to build in redundancy and/or improve speed. Here I will explain how to add a HDD drive and setup raid 1. Other setups are quite similar but not discussed here any further.
 
 ### Partition drives
 
-1. Insert the drive into the raspberry pi through an adapter.
+1. Insert the drive into the raspberry pi through an usb adapter.
+
+<div align="center">
+  <img height="300" width="auto" src="https://ae01.alicdn.com/kf/Hce474db8189f405c9ed0138f880d36e1s/Ugreen-Sata-Usb-Adapter-Usb-3-0-2-0-Naar-Sata-3-Kabel-Converter-Cabo-Voor.jpg">
+  <p>The adapter I used.</p>
+</div>
+
 2. (Optional) check if drives are correctly plugged in.
 
 ```
@@ -174,16 +180,23 @@ cd /dev
 ll sd*
 ```
 
-3. Select the storage disk you want to create partitions on.
+3. Select the storage disk you want to create partitions on and open the `fdisk` partition creator (the name of my drive here is `sda`).
 
 ```
 sudo fdisk /dev/sda
 ```
 
-4. Run through the partition creator (`n` = create a new partition and `d` = delete a partition) (`+` followed by a number with `G` = Gigabyte or `M`=Megabyte behind it to determine partition size)
-5. Write the created partition to the drive with `w`.
-6. Repeat for other drives.
-7. Format the partition.
+4. Run through the partition creator (see picture below for an overview of all action commands).
+    1. Create a partition with `a`.  
+    2. Use `+` followed by a desired partition size with `G` = Gigabyte or `M`= Megabyte at the end to determine partition size, like `+12G`.  
+    3. Write the created partition to the drive with `w`.  
+
+<div align="center">
+  <img height="300" width="auto" src="https://www.howtogeek.com/wp-content/uploads/2012/02/Screenshot-at-2012-02-25-04_06_44.png?trim=1,1&bg-color=000&pad=1,1">
+</div>
+
+5. Repeat for other drives.
+6. Format the partition.
 
 ```
 sudo mkfs -t ext4 /dev/sda1
