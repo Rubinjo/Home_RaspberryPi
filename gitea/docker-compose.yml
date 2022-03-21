@@ -1,0 +1,44 @@
+version: "3"
+
+networks:
+  frontend:
+    external:
+      name: proxy
+  backend:
+
+services:
+  gitea:
+    image: gitea/gitea:1.16.0
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database_DB_TYPE=postgres
+      - GITEA__database_HOST=db:5432
+      - GITEA__database_NAME=gitea-db
+      - GITEA__database_USER=gitea
+      - GITEA__database_PASSWD=PASSWORD
+    restart: always
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - /mnt/raid1/gitea:/data
+      - /mnt/raid1/etc/timezone:/etc/timezone:ro
+      - /mnt/raid1/etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "222:22"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_PASSWORD=PASSWORD
+      - POSTGRES_DB=gitea-db
+    networks:
+      - backend
+    volumes:
+      - /mnt/raid1/postgres:/var/lib/postgresql/data
