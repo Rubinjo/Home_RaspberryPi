@@ -1,6 +1,6 @@
 # Home_RaspberryPi
 
-A tutorial on how to setup [Pihole](https://github.com/pi-hole/pi-hole), [Portainer](https://github.com/portainer/portainer), [Nextcloud](https://github.com/nextcloud/docker) and [Nginx Proxy Manager](https://github.com/jc21/nginx-proxy-manager) on a Raspberry Pi. This setup was executed with a Raspberry Pi 4 Model B 4GB.
+A tutorial on how to setup different services on a Raspberry Pi. The services covered in this tutorial are [Pihole](https://github.com/pi-hole/pi-hole), [Nextcloud](https://github.com/nextcloud/docker), [Gitea](https://gitea.io/en-us/), [Portainer](https://github.com/portainer/portainer) and [Nginx Proxy Manager](https://github.com/jc21/nginx-proxy-manager). Most services can be installed on a singular device but port conflicts will occur when multiple services need access to port `80`, which is the case here with Pihole and Nginx Proxy Manager (install these on seperate devices). This setup was executed with a Raspberry Pi 4 Model B 4GB.
 
 <p align="center">
   <a aria-label="Docker_shield" href="https://github.com/docker" target="_blank">
@@ -14,8 +14,8 @@ A tutorial on how to setup [Pihole](https://github.com/pi-hole/pi-hole), [Portai
 ## Prerequisites
 
 - Buy a domain name.
-- Set up a static IP address for your device.
-- Set up port forwarding for port `82` and `443`.
+- Set up a static IP address for your device (`ifconfig` could help find network information).
+- Set up port forwarding for port `80` and `443`.
 
 ## Install OS
 
@@ -23,7 +23,7 @@ A tutorial on how to setup [Pihole](https://github.com/pi-hole/pi-hole), [Portai
 
 2. Add an `ssh` file to the installed OS (alternatively use Ctrl-Shift-X to open advanced settings and enable `ssh`).
 
-3. Start up Raspberry Pi and ssh into it or connect directly (username:`ubuntu` and password:`ubuntu`).
+3. Start up Raspberry Pi and ssh into it or connect directly (default username:`ubuntu` and default password:`ubuntu`).
 
 4. When you first login it will ask you to change the password, do so then connect again.
 
@@ -111,6 +111,12 @@ services:
     restart: always
 ```
 
+Create the container.
+
+```
+docker-compose up -d
+```
+
 Navigate to `http://<pi-ip-address>:9000`. Setup the admin username and password. In the next page, select `Docker` as the container environment to manage. You will now be brought to the portainer homepage.
 
 ## Setup Nginx Proxy Manager
@@ -138,7 +144,7 @@ services:
     image: "jc21/nginx-proxy-manager:latest"
     restart: always
     ports:
-      - "82:80"
+      - "80:80"
       - "443:443"
       - "81:81"
     environment:
@@ -178,6 +184,7 @@ To get extra storage with your nextcloud installation you can add HDD's and/or S
 ```
 cd /dev
 ll sd*
+sudo fdisk -l
 ```
 
 3. Select the storage disk you want to create partitions on and open the `fdisk` partition creator (the name of my drive here is `sda`).
@@ -187,7 +194,7 @@ sudo fdisk /dev/sda
 ```
 
 4. Run through the partition creator (see picture below for an overview of all action commands).
-    1. Create a partition with `a`.  
+    1. Create a partition with `n`.  
     2. Use `+` followed by a desired partition size with `G` = Gigabyte or `M`= Megabyte at the end to determine partition size, like `+12G`.  
     3. Write the created partition to the drive with `w`.  
 
