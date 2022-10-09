@@ -184,7 +184,6 @@ To get extra storage with your nextcloud installation you can add HDD's and/or S
 ```
 cd /dev
 ll sd*
-sudo fdisk -l
 ```
 
 3. Select the storage disk you want to create partitions on and open the `fdisk` partition creator (the name of my drive here is `sda`).
@@ -207,6 +206,13 @@ sudo fdisk /dev/sda
 
 ```
 sudo mkfs -t ext4 /dev/sda1
+```
+
+7. (Optional) Some extra helpfull commands for drive information.
+
+```
+sudo fdisk -l
+lsblk
 ```
 
 ### Create Raid partition
