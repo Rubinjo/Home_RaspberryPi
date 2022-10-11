@@ -223,19 +223,25 @@ lsblk
 sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdb1
 ```
 
-2. Format the partition.
+2. Wait for raid 1 volume to be created, check progress with.
 
 ```
-sudo mkfs.ext4 -v -m .1 -b 4096 -E stride=32,stipe-width=64 /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
-3. Mount drive.
+3. Format the partition.
+
+```
+sudo mkfs.ext4 -v -m .1 -b 4096 -E stride=32,stripe-width=64 /dev/md0
+```
+
+4. Mount drive.
 
 ```
 sudo mount /dev/md0 /mnt/raid1
 ```
 
-4. Add the following text to the `fstab` file in the `/etc` folder so that the drive is mounted on bootup.
+5. Add the following text to the `fstab` file in the `/etc` folder so that the drive is mounted on bootup.
 
 ```
 /dev/md0  /mnt/raid1  ext4  defaults  0 0
@@ -247,7 +253,6 @@ sudo mount /dev/md0 /mnt/raid1
 cd ~
 mkdir nextcloud
 cd nextcloud
-mkdir conf.d
 ```
 
 Create a `docker-compose.yml` file in the `nextcloud` directory with following content (change the `PASSWORD` values).
@@ -262,7 +267,6 @@ networks:
   backend:
 
 services:
-
   nextcloud-app:
     image: nextcloud
     restart: always
